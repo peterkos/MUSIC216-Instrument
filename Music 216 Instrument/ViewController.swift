@@ -12,7 +12,7 @@ import CoreMotion
 
 class ViewController: UIViewController {
 
-	let motion = CMMotionManager()
+
 
 	@IBOutlet var accelerometerLabelX: UILabel!
 	@IBOutlet var accelerometerLabelY: UILabel!
@@ -23,68 +23,30 @@ class ViewController: UIViewController {
 	@IBOutlet var gyroscopeLabelZ: UILabel!
 
 
+	let motionManager = CMMotionManager()
+
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		printAccelerometerEvents()
-		printGyroscopeEvents()
+		if motionManager.isDeviceMotionAvailable {
 
-	}
+			motionManager.showsDeviceMovementDisplay = true
+			motionManager.deviceMotionUpdateInterval = 1.0 / 50.0
 
-	func printAccelerometerEvents() {
+			motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main) { (data, error) in
 
-		print("print here we go")
 
-		guard motion.isAccelerometerAvailable else {
-			fatalError("Error: Accelerometer not available")
-		}
+				if let data = data {
+					self.accelerometerLabelX.text = "Pitch: " + data.attitude.pitch.description
+					self.accelerometerLabelY.text = "Roll: " + data.attitude.roll.description
+					self.accelerometerLabelZ.text = "Yaw: " + data.attitude.yaw.description
+				}
 
-		motion.accelerometerUpdateInterval = 1.0 / 5.0
-
-		motion.startAccelerometerUpdates(to: OperationQueue.main) { (data, error) in
-
-			OperationQueue.main.addOperation {
-
-				let xData = data!.acceleration.x
-				let yData = data!.acceleration.y
-				let zData = data!.acceleration.z
-
-				self.accelerometerLabelX.text = String(format: "%.5f", xData)
-				self.accelerometerLabelY.text = String(format: "%.5f", yData)
-				self.accelerometerLabelZ.text = String(format: "%.5f", zData)
 			}
 
 		}
 	}
-
-
-	func printGyroscopeEvents() {
-
-		print("print here we go")
-
-		guard motion.isGyroAvailable else {
-			fatalError("Error: Gyro not available")
-		}
-
-		motion.gyroUpdateInterval = 1.0 / 5.0
-
-		motion.startGyroUpdates(to: OperationQueue.main) { (data, error) in
-
-			OperationQueue.main.addOperation {
-
-				let xData = data!.rotationRate.x
-				let yData = data!.rotationRate.y
-				let zData = data!.rotationRate.z
-
-				self.gyroscopeLabelX.text = String(format: "%.5f", xData)
-				self.gyroscopeLabelY.text = String(format: "%.5f", yData)
-				self.gyroscopeLabelZ.text = String(format: "%.5f", zData)
-			}
-
-		}
-	}
-
 
 
 
