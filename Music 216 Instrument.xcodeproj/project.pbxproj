@@ -22,6 +22,7 @@
 		D7F809D621825C870041DBC3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D7F809D921825C870041DBC3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D7F809DB21825C870041DBC3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D7F809E12183A4B20041DBC3 /* Music 216 Instrument.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Music 216 Instrument.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +55,7 @@
 		D7F809CE21825C850041DBC3 /* Music 216 Instrument */ = {
 			isa = PBXGroup;
 			children = (
+				D7F809E12183A4B20041DBC3 /* Music 216 Instrument.entitlements */,
 				D7F809CF21825C850041DBC3 /* AppDelegate.swift */,
 				D7F809D121825C850041DBC3 /* ViewController.swift */,
 				D7F809D321825C850041DBC3 /* Main.storyboard */,
@@ -96,6 +98,14 @@
 				TargetAttributes = {
 					D7F809CB21825C850041DBC3 = {
 						CreatedOnToolsVersion = 10.0;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 0;
+							};
+							com.apple.BackgroundModes = {
+								enabled = 0;
+							};
+						};
 					};
 				};
 			};
