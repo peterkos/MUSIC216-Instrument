@@ -31,6 +31,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 	let locationManager = CLLocationManager()
 
 	let osc = AKOscillator()
+	let beaconOsc = AKOscillator()
 
 
 	override func viewDidLoad() {
@@ -41,13 +42,30 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		locationManager.requestAlwaysAuthorization()
 
 
+		// Each generates their own sound
+		// @TODO: Isolate sound generation to separate function
 		monitorBeacons()
-		monitorMotion()
+//		monitorMotion()
 
 
 	}
 
 	func monitorBeacons() {
+
+		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
+		AudioKit.output = bitcrusher
+		beaconOsc.amplitude = 0.5
+		beaconOsc.frequency = 300
+
+		// Output sound
+		do {
+			try AudioKit.start()
+		} catch {
+			print("oh no")
+		}
+
+		beaconOsc.start()
+
 
 		if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self) {
 
@@ -85,7 +103,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 		if beacons.count > 0 {
 			let nearestBeacon = beacons.first!
+
+
+			// Let's implement a second oscillator
+			// This time, the frequency changes with RSSI of the main beacon
+			// @TODO: Scale logarithmically for more granular detail?
 			print(nearestBeacon.rssi)
+			beaconOsc.amplitude = 0.5
+			beaconOsc.frequency = abs(nearestBeacon.rssi) * 10
+
+
 		}
 
 	}
@@ -109,8 +136,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 			motionManager.showsDeviceMovementDisplay = true
 			motionManager.deviceMotionUpdateInterval = 1.0 / 60.0
-
-			var gravityBuffer = [Double]()
 
 			motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main) { (data, error) in
 
