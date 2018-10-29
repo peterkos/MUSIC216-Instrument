@@ -8,12 +8,11 @@
 
 import UIKit
 import CoreMotion
+import CoreLocation
 import AudioKit
 
 
-class ViewController: UIViewController {
-
-
+class ViewController: UIViewController, CLLocationManagerDelegate {
 
 	@IBOutlet var attitudeLabelX: UILabel!
 	@IBOutlet var attitudeLabelY: UILabel!
@@ -29,18 +28,83 @@ class ViewController: UIViewController {
 	var currentRoll = 0.0
 	var currentYaw = 0.0
 
+	let locationManager = CLLocationManager()
+
 	let osc = AKOscillator()
 
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
+		// Configure location things
+		locationManager.delegate = self
+		locationManager.requestAlwaysAuthorization()
 
+
+		monitorBeacons()
+		monitorMotion()
+
+
+	}
+
+	func monitorBeacons() {
+
+		if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self) {
+
+			let proximityUUID = UUID(uuidString: "B0702880-A295-A8AB-F734-031A98A512DA")
+			let beaconID = "test"
+
+			let region = CLBeaconRegion(proximityUUID: proximityUUID!, identifier: beaconID)
+
+			print("entry notif: \(region.notifyOnEntry)")
+
+			print("started")
+			locationManager.startMonitoring(for: region)
+		}
+
+	}
+
+	// MARK -- CLLocationManagerDelegate
+	func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+
+		print("Entered region")
+		if region is CLBeaconRegion {
+			if CLLocationManager.isRangingAvailable() {
+				print("RANGING IS AVAILABLE")
+				manager.startRangingBeacons(in: region as! CLBeaconRegion)
+
+			}
+		}
+
+	}
+
+	func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
+
+		print(beacons)
+		print("found in \(region.identifier)")
+
+		if beacons.count > 0 {
+			let nearestBeacon = beacons.first!
+			print(nearestBeacon.rssi)
+		}
+
+	}
+
+	func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+		print(region.identifier)
+	}
+
+	func locationManager(_ manager: CLLocationManager, didStartMonitoringFor region: CLRegion) {
+		print("identif: \(region.identifier)")
+	}
+
+
+
+	func monitorMotion() {
 		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
 		AudioKit.output = bitcrusher
 
-
-
+		// Parameter control with Euler angles
 		if motionManager.isDeviceMotionAvailable {
 
 			motionManager.showsDeviceMovementDisplay = true
@@ -58,30 +122,6 @@ class ViewController: UIViewController {
 					self.currentRoll = data.attitude.roll
 					self.currentYaw = data.attitude.yaw
 
-//					let gravity = data.gravity
-//					let rotationRate = data.rotationRate
-//					let rateAlongGravity = rotationRate.x * gravity.x // ω⃗ · ĝ
-//										 + rotationRate.y * gravity.y
-//										 + rotationRate.z * gravity.z
-
-
-					// Only fill to 1 second of data
-					// Erase all when limit hit
-					if (gravityBuffer.count >= (1 * 60)) {
-						gravityBuffer.removeAll()
-						print("ERASED")
-					}
-
-//					gravityBuffer.append(rateAlongGravity)
-					gravityBuffer.append(data.userAcceleration.x)
-
-					// Get average
-					let sum = gravityBuffer.reduce(0, { x, y in x + y})
-					let avg = sum / gravityBuffer.count
-					print("Max: \(gravityBuffer.max())")
-
-
-
 					// Show on screen for Debug reasons
 					self.attitudeLabelX.text = "Pitch: " + self.currentPitch.description
 					self.attitudeLabelY.text = "Roll: " + self.currentRoll.description
@@ -89,15 +129,13 @@ class ViewController: UIViewController {
 
 					self.osc.amplitude = 0.5
 					self.osc.frequency = abs(1000 * self.currentRoll)
-//					print(self.osc.frequency)
+					//					print(self.osc.frequency)
 
 				}
 
 			}
 
 		}
-
-
 
 		// Output sound
 		do {
@@ -107,9 +145,6 @@ class ViewController: UIViewController {
 		}
 
 		osc.start()
-
-
-
 
 	}
 
