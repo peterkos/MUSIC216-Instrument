@@ -15,9 +15,9 @@ class ViewController: UIViewController {
 
 
 
-	@IBOutlet var accelerometerLabelX: UILabel!
-	@IBOutlet var accelerometerLabelY: UILabel!
-	@IBOutlet var accelerometerLabelZ: UILabel!
+	@IBOutlet var attitudeLabelX: UILabel!
+	@IBOutlet var attitudeLabelY: UILabel!
+	@IBOutlet var attitudeLabelZ: UILabel!
 
 	@IBOutlet var gyroscopeLabelX: UILabel!
 	@IBOutlet var gyroscopeLabelY: UILabel!
@@ -44,7 +44,9 @@ class ViewController: UIViewController {
 		if motionManager.isDeviceMotionAvailable {
 
 			motionManager.showsDeviceMovementDisplay = true
-			motionManager.deviceMotionUpdateInterval = 1.0 / 100.0
+			motionManager.deviceMotionUpdateInterval = 1.0 / 60.0
+
+			var gravityBuffer = [Double]()
 
 			motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main) { (data, error) in
 
@@ -56,14 +58,38 @@ class ViewController: UIViewController {
 					self.currentRoll = data.attitude.roll
 					self.currentYaw = data.attitude.yaw
 
+//					let gravity = data.gravity
+//					let rotationRate = data.rotationRate
+//					let rateAlongGravity = rotationRate.x * gravity.x // ω⃗ · ĝ
+//										 + rotationRate.y * gravity.y
+//										 + rotationRate.z * gravity.z
+
+
+					// Only fill to 1 second of data
+					// Erase all when limit hit
+					if (gravityBuffer.count >= (1 * 60)) {
+						gravityBuffer.removeAll()
+						print("ERASED")
+					}
+
+//					gravityBuffer.append(rateAlongGravity)
+					gravityBuffer.append(data.userAcceleration.x)
+
+					// Get average
+					let sum = gravityBuffer.reduce(0, { x, y in x + y})
+					let avg = sum / gravityBuffer.count
+					print("Max: \(gravityBuffer.max())")
+
+
+
 					// Show on screen for Debug reasons
-					self.accelerometerLabelX.text = "Pitch: " + self.currentPitch.description
-					self.accelerometerLabelY.text = "Roll: " + self.currentRoll.description
-					self.accelerometerLabelZ.text = "Yaw: " + self.currentYaw.description
+					self.attitudeLabelX.text = "Pitch: " + self.currentPitch.description
+					self.attitudeLabelY.text = "Roll: " + self.currentRoll.description
+					self.attitudeLabelZ.text = "Yaw: " + self.currentYaw.description
 
 					self.osc.amplitude = 0.5
 					self.osc.frequency = abs(1000 * self.currentRoll)
-					print(self.osc.frequency)
+//					print(self.osc.frequency)
 
 				}
 

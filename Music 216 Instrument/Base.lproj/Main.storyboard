@@ -104,9 +104,9 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
-                        <outlet property="accelerometerLabelX" destination="Dw2-qI-TzD" id="SBM-XV-zW3"/>
-                        <outlet property="accelerometerLabelY" destination="kbF-O9-m4K" id="Zbz-hQ-Q1b"/>
-                        <outlet property="accelerometerLabelZ" destination="xxc-6b-0Hc" id="qUG-Wo-epP"/>
+                        <outlet property="attitudeLabelX" destination="Dw2-qI-TzD" id="YIN-h2-KD1"/>
+                        <outlet property="attitudeLabelY" destination="kbF-O9-m4K" id="cjR-0b-0JG"/>
+                        <outlet property="attitudeLabelZ" destination="xxc-6b-0Hc" id="yg6-Vm-lwT"/>
                         <outlet property="gyroscopeLabelX" destination="f8N-rG-fDW" id="8SK-tI-aqL"/>
                         <outlet property="gyroscopeLabelY" destination="Lho-o1-wQl" id="yfP-El-FWr"/>
                         <outlet property="gyroscopeLabelZ" destination="aoj-aQ-X5r" id="4Z8-ul-v8x"/>
