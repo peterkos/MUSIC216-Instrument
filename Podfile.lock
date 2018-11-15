@@ -5,17 +5,21 @@ PODS:
   - AudioKit/Core (4.5.2)
   - AudioKit/UI (4.5.2):
     - AudioKit/Core
+  - SwiftOSC (1.2.2)
 
 DEPENDENCIES:
   - AudioKit (~> 4.0)
+  - SwiftOSC (~> 1.2)
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - AudioKit
+    - SwiftOSC
 
 SPEC CHECKSUMS:
   AudioKit: af6770360f1d8b2aed16ce2802dafe69f0e592d0
+  SwiftOSC: d5750d724e7a348afa64ea2cafa00b3105ec0a76
 
-PODFILE CHECKSUM: 60be2dd0f1ddb893d69a9a7bfb4e953f1148fac7
+PODFILE CHECKSUM: d19a01488988188027c51324d5ed0ba41765e402
 
 COCOAPODS: 1.5.3
