@@ -123,6 +123,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 			beaconOsc.frequency = abs(nearestBeacon.rssi) * 8
 			print("\tfrequency: \(beaconOsc.frequency)")
 
+			print("\tAccuracy: \(nearestBeacon.accuracy)")
+
 		}
 
 	}
@@ -167,8 +169,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 
 	func monitorMotion() {
-		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
-		AudioKit.output = bitcrusher
+//		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
+//		AudioKit.output = bitcrusher
 
 		// Parameter control with Euler angles
 		if motionManager.isDeviceMotionAvailable {
@@ -191,8 +193,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 					self.attitudeLabelY.text = "Roll: " + self.currentRoll.description
 					self.attitudeLabelZ.text = "Yaw: " + self.currentYaw.description
 
-					self.osc.amplitude = 0.5
-					self.osc.frequency = abs(1000 * self.currentRoll)
+					
+
+//					self.osc.amplitude = 0.5
+//					self.osc.frequency = abs(1000 * self.currentRoll)
 					//					print(self.osc.frequency)
 
 				}
@@ -202,13 +206,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		}
 
 		// Output sound
-		do {
-			try AudioKit.start()
-		} catch {
-			print("oh no")
-		}
+//		do {
+//			try AudioKit.start()
+//		} catch {
+//			print("oh no")
+//		}
 
-		osc.start()
+//		osc.start()
 
 	}
 
