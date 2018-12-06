@@ -29,6 +29,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 	var currentYaw = 0.0
 
 	let locationManager = CLLocationManager()
+	var region: CLBeaconRegion? = nil
 
 	let osc = AKOscillator()
 	let beaconOsc = AKOscillator()
@@ -42,10 +43,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		locationManager.requestAlwaysAuthorization()
 
 
-		// Each generates their own sound
-		// @TODO: Isolate sound generation to separate function
+		// Configure our beacon
+		let proximityUUID = UUID(uuidString: "B0702880-A295-A8AB-F734-031A98A512DA")
+		let beaconID = "test"
+
+		// Create our region
+		self.region = CLBeaconRegion(proximityUUID: proximityUUID!, identifier: beaconID)
+
+		// Manually request state because reasons
+		// https://stackoverflow.com/q/34934181/1431900
+		locationManager.requestState(for: self.region!)
+
 		monitorBeacons()
-//		monitorMotion()
 
 
 	}
@@ -54,8 +63,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
 		AudioKit.output = bitcrusher
-		beaconOsc.amplitude = 0.5
-		beaconOsc.frequency = 300
 
 		// Output sound
 		do {
@@ -69,14 +76,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 		if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self) {
 
-			let proximityUUID = UUID(uuidString: "B0702880-A295-A8AB-F734-031A98A512DA")
-			let beaconID = "test"
-
-			let region = CLBeaconRegion(proximityUUID: proximityUUID!, identifier: beaconID)
+			guard let region = self.region else {
+				print("ERROR: Unable to instantiate beacon region.")
+				return
+			}
 
 			print("entry notif: \(region.notifyOnEntry)")
-
-			print("started")
 			locationManager.startMonitoring(for: region)
 		}
 
@@ -90,7 +95,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 			if CLLocationManager.isRangingAvailable() {
 				print("RANGING IS AVAILABLE")
 				manager.startRangingBeacons(in: region as! CLBeaconRegion)
-
 			}
 		}
 
@@ -98,8 +102,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 	func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
 
-		print(beacons)
-		print("found in \(region.identifier)")
+		// Print our beacons
+//		print(beacons)
+//		print("found in \(region.identifier)")
 
 		if beacons.count > 0 {
 			let nearestBeacon = beacons.first!
@@ -110,8 +115,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 			// @TODO: Scale logarithmically for more granular detail?
 			print(nearestBeacon.rssi)
 			beaconOsc.amplitude = 0.5
-			beaconOsc.frequency = abs(nearestBeacon.rssi) * 10
-
+			beaconOsc.frequency = abs(nearestBeacon.rssi) * -8
 
 		}
 
@@ -123,6 +127,36 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 	func locationManager(_ manager: CLLocationManager, didStartMonitoringFor region: CLRegion) {
 		print("identif: \(region.identifier)")
+	}
+
+	func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
+
+		guard let localRegion = self.region else {
+			print("Unable to create our beacon region")
+			return
+		}
+
+		// Make sure we're inside *our* region
+		guard region.identifier == localRegion.identifier else {
+			print("Found different region")
+			return
+		}
+
+		print("Determined state for our region: \(state)")
+
+		switch state {
+			case .inside: print("You're alreday inside the region!")
+			case .outside: print("You're outside the region!")
+			case .unknown: print("Hey buddy, are you in space?")
+		}
+
+		if state == .inside {
+			self.locationManager.startRangingBeacons(in: localRegion)
+		}
+
+
+
+
 	}
 
 
