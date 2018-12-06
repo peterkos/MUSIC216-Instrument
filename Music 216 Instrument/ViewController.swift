@@ -22,6 +22,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 	@IBOutlet var gyroscopeLabelY: UILabel!
 	@IBOutlet var gyroscopeLabelZ: UILabel!
 
+	@IBOutlet weak var frequencyLabel: UILabel!
+
+	@IBAction func accOscSwitch(_ sender: UISwitch) {
+
+		if sender.isOn && !accOsc.isPlaying {
+			accOsc.start()
+			print("starting second...")
+		} else {
+			accOsc.stop()
+			print("stopping second...")
+		}
+
+	}
+
 
 	let motionManager = CMMotionManager()
 	var currentPitch = 0.0
