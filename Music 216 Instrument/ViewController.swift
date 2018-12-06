@@ -148,11 +148,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 			print("\tAccuracy: \(nearestBeacon.accuracy)")
 
-			// 44 is base frequency
-
-
+			// -40 is base signal strength
+			// Using a scale factor of 2 to make the notes
+			// "closer together" in 3d space
 			let current = (abs(nearestBeacon.rssi) - 40) * (2)
 			print("CURRENT: \(current)")
+
 			switch current {
 			case 0..<10: beaconOsc.frequency = 440.00  // A
 			case 10..<20: beaconOsc.frequency = 493.88 // B
