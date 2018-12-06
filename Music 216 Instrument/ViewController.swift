@@ -32,6 +32,12 @@ class ViewController: UIViewController {
 	let osc = AKOscillator()
 
 
+
+	func calcVal(diff: CFTimeInterval, accBuffer: inout [Double], grav: CMAcceleration) {
+		accBuffer = accBuffer.map { ($0 - grav.y) * 0.5 * (Double(diff) * Double(diff)) }
+	}
+
+
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
@@ -45,7 +51,9 @@ class ViewController: UIViewController {
 			motionManager.showsDeviceMovementDisplay = true
 			motionManager.deviceMotionUpdateInterval = 1.0 / 60.0
 
-			var gravityBuffer = [Double]()
+			var accBuffer = [Double]()
+			var timeStart = CFAbsoluteTime()
+			var timeEnd = CFAbsoluteTime()
 
 			motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main) { (data, error) in
 
@@ -57,27 +65,39 @@ class ViewController: UIViewController {
 					self.currentRoll = data.attitude.roll
 					self.currentYaw = data.attitude.yaw
 
-//					let gravity = data.gravity
-//					let rotationRate = data.rotationRate
-//					let rateAlongGravity = rotationRate.x * gravity.x // ω⃗ · ĝ
-//										 + rotationRate.y * gravity.y
-//										 + rotationRate.z * gravity.z
 
+//					let firstVec = vector3(data.userAcceleration.x, data.userAcceleration.y, data.userAcceleration.z)
+//					let gravVec = vector3(data.gravity.x, data.gravity.y, data.gravity.z)
+//					let value = (1/2) * (firstVec - gravVec)
+//					print("VALUE: \(value * 3600)")
 
-					// Only fill to 1 second of data
-					// Erase all when limit hit
-					if (gravityBuffer.count >= (1 * 60)) {
-						gravityBuffer.removeAll()
-						print("ERASED")
+					if (accBuffer.isEmpty) {
+						timeStart = CFAbsoluteTimeGetCurrent()
+						print("timestart: \(timeStart)")
 					}
 
-//					gravityBuffer.append(rateAlongGravity)
-					gravityBuffer.append(data.userAcceleration.x)
+					accBuffer.append(data.userAcceleration.y)
 
-					// Get average
-//					let sum = gravityBuffer.reduce(0, { x, y in x + y})
+					// Only fill to 2 seconds of data
+					// Erase all when limit hit
+					if (accBuffer.count >= (2 * 60)) {
+
+						let sum = accBuffer.reduce(0, { x, y in x + y})
+						print(sum)
+
+						accBuffer.removeAll()
+						timeEnd = CFAbsoluteTimeGetCurrent()
+
+						let diff = timeEnd - timeStart
+						self.calcVal(diff: diff, accBuffer: &accBuffer, grav: data.gravity)
+						print("\tERASED for duration \(diff)")
+						timeStart = 0
+					}
+
+
+//					gravityBuffer.append(rateAlongGravity)
+
 //					let avg = sum / gravityBuffer.count
-					print("Max: \(gravityBuffer.max()?.description ?? "oops")")
 
 
 					// Show on screen for Debug reasons
