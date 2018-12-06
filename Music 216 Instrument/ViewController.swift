@@ -35,9 +35,8 @@ class ViewController: UIViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-
-		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
-		AudioKit.output = bitcrusher
+		let reverb = AKReverb(osc, dryWetMix: 0.2)
+		AudioKit.output = reverb
 
 
 
@@ -76,10 +75,9 @@ class ViewController: UIViewController {
 					gravityBuffer.append(data.userAcceleration.x)
 
 					// Get average
-					let sum = gravityBuffer.reduce(0, { x, y in x + y})
-					let avg = sum / gravityBuffer.count
-					print("Max: \(gravityBuffer.max())")
-
+//					let sum = gravityBuffer.reduce(0, { x, y in x + y})
+//					let avg = sum / gravityBuffer.count
+					print("Max: \(gravityBuffer.max()?.description ?? "oops")")
 
 
 					// Show on screen for Debug reasons
