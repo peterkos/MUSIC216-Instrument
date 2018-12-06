@@ -32,9 +32,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 	var region: CLBeaconRegion? = nil
 
 	let beaconOsc = AKOscillator()
+	let accOsc = AKOscillator()
 
 
 	override func viewDidLoad() {
+
 		super.viewDidLoad()
 
 		// Configure location things
@@ -54,18 +56,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		locationManager.requestState(for: self.region!)
 
 		monitorBeacons()
+		monitorMotion()
 
 
-		// Sound stuff
+		// --- SOUND ---
 
-		// Setup effect
-		let reverb = AKReverb(beaconOsc, dryWetMix: 0.3)
-		AudioKit.output = reverb
+
+		let mixer = AKMixer(beaconOsc, accOsc)
+		AudioKit.output = mixer
 
 		// Configure default amp and freq
 		// (These are set later in didRangeBeacons())
 		beaconOsc.amplitude = 0.5
-		beaconOsc.frequency = 400
+		beaconOsc.frequency = 440
+
+		// Default values for accosc
+		// (These are set later in monitorMotion()
+		accOsc.amplitude = 0.5
+		accOsc.frequency = 220
 
 		// Output sound
 		do {
@@ -75,6 +83,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		}
 
 		beaconOsc.start()
+		accOsc.start()
 
 
 	}
@@ -125,6 +134,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 			print("\tAccuracy: \(nearestBeacon.accuracy)")
 
+			// 44 is base frequency
+
+
+			let current = (abs(nearestBeacon.rssi) - 40) * (2)
+			print("CURRENT: \(current)")
+			switch current {
+			case 0..<10: beaconOsc.frequency = 440.00  // A
+			case 10..<20: beaconOsc.frequency = 493.88 // B
+			case 20..<30: beaconOsc.frequency = 554.37 // C#
+			case 30..<40: beaconOsc.frequency = 587.33 // D
+			case 40..<50: beaconOsc.frequency = 659.25 // E
+			case 50..<60: beaconOsc.frequency = 739.99 // F#
+			case 60..<70: beaconOsc.frequency = 830.61 // G#
+			case 70..<80: beaconOsc.frequency = 880.00 // A
+			default: beaconOsc.frequency = 440.0
+			}
+
 		}
 
 	}
@@ -169,8 +195,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 
 	func monitorMotion() {
-//		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
-//		AudioKit.output = bitcrusher
 
 		// Parameter control with Euler angles
 		if motionManager.isDeviceMotionAvailable {
@@ -193,7 +217,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 					self.attitudeLabelY.text = "Roll: " + self.currentRoll.description
 					self.attitudeLabelZ.text = "Yaw: " + self.currentYaw.description
 
-					
+
+					let rollFreq = Double(abs(100 * self.currentRoll) + 300)
+					self.accOsc.amplitude = 0.5
+					self.accOsc.frequency = rollFreq
+//					print("cutoff freq: \(rollFreq)")
+//					let filter = AKLowPassFilter(self.beaconOsc, cutoffFrequency: rollFreq, resonance: 0.5)
+//					AudioKit.output = filter
 
 //					self.osc.amplitude = 0.5
 //					self.osc.frequency = abs(1000 * self.currentRoll)
@@ -204,15 +234,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 			}
 
 		}
-
-		// Output sound
-//		do {
-//			try AudioKit.start()
-//		} catch {
-//			print("oh no")
-//		}
-
-//		osc.start()
 
 	}
 
