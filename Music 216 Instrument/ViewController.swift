@@ -31,7 +31,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 	let locationManager = CLLocationManager()
 	var region: CLBeaconRegion? = nil
 
-	let osc = AKOscillator()
 	let beaconOsc = AKOscillator()
 
 
@@ -57,12 +56,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		monitorBeacons()
 
 
-	}
+		// Sound stuff
 
-	func monitorBeacons() {
+		// Setup effect
+		let reverb = AKReverb(beaconOsc, dryWetMix: 0.3)
+		AudioKit.output = reverb
 
-		let bitcrusher = AKBitCrusher(osc, bitDepth: 16, sampleRate: 40000)
-		AudioKit.output = bitcrusher
+		// Configure default amp and freq
+		// (These are set later in didRangeBeacons())
+		beaconOsc.amplitude = 0.5
+		beaconOsc.frequency = 400
 
 		// Output sound
 		do {
@@ -73,6 +76,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 		beaconOsc.start()
 
+
+	}
+
+	func monitorBeacons() {
 
 		if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self) {
 
@@ -109,13 +116,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		if beacons.count > 0 {
 			let nearestBeacon = beacons.first!
 
-
 			// Let's implement a second oscillator
 			// This time, the frequency changes with RSSI of the main beacon
 			// @TODO: Scale logarithmically for more granular detail?
 			print(nearestBeacon.rssi)
-			beaconOsc.amplitude = 0.5
-			beaconOsc.frequency = abs(nearestBeacon.rssi) * -8
+			beaconOsc.frequency = abs(nearestBeacon.rssi) * 8
+			print("\tfrequency: \(beaconOsc.frequency)")
 
 		}
 
@@ -151,11 +157,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 		}
 
 		if state == .inside {
+			// Thanks SO!
+			// https://stackoverflow.com/q/29936882/1431900
 			self.locationManager.startRangingBeacons(in: localRegion)
 		}
-
-
-
 
 	}
 
