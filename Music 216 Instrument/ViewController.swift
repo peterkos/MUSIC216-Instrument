@@ -9,10 +9,11 @@
 import UIKit
 import CoreMotion
 import CoreLocation
+import CoreBluetooth
 import AudioKit
 
 
-class ViewController: UIViewController, CLLocationManagerDelegate {
+class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralManagerDelegate {
 
 	@IBOutlet var attitudeLabelX: UILabel!
 	@IBOutlet var attitudeLabelY: UILabel!
@@ -48,6 +49,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 	let beaconOsc = AKOscillator()
 	let accOsc = AKOscillator()
 
+	var bluetoothManager: CBCentralManager? = nil
 
 	override func viewDidLoad() {
 
@@ -71,6 +73,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 		monitorBeacons()
 		monitorMotion()
+
+
+		// Initialize CBPMDelegate
+//		bluetoothManager.delegate = self as? CBPeripheralManagerDelegate
+		bluetoothManager = CBCentralManager(delegate: self as CBCentralManagerDelegate, queue: DispatchQueue.main)
+
+
+
+
+
+
+
 
 
 		// --- SOUND ---
@@ -101,6 +115,27 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 
 
 	}
+
+	func centralManagerDidUpdateState(_ central: CBCentralManager) {
+		switch central.state {
+			case .poweredOn: self.startScanning()
+			default: print("oh noes")
+		}
+	}
+
+	func startScanning() {
+		bluetoothManager?.scanForPeripherals(withServices: nil, options: nil)
+	}
+
+
+	func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+		print("DISCOVERED SOMETHING")
+		print("Name: \(peripheral.name)")
+		print("RSSI: \(RSSI)")
+	}
+
+
+
 
 	func monitorBeacons() {
 
