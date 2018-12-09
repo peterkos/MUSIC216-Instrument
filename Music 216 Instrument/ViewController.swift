@@ -10,6 +10,7 @@ import UIKit
 import CoreMotion
 import CoreBluetooth
 import AudioKit
+import KalmanFilter
 import os.log
 
 class ViewController: UIViewController, CBCentralManagerDelegate {
@@ -30,11 +31,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 	}
 
 
+	// Managers
 	let motionManager = CMMotionManager()
 	var bluetoothManager: CBCentralManager? = nil
 
+	// Oscillators
 	let blueOsc = AKOscillator()
 	let accOsc = AKOscillator()
+
+	// Kalman filter stuff for relatively-consistent RSSI values
+	var rssiMeasurements = [Double]()
+	var filter = KalmanFilter<Double>(stateEstimatePrior: 0.0, errorCovariancePrior: 10.0)
 
 	// Enum of note values for us (A Major)
 	// s = sharp, AA = octave up
@@ -123,8 +130,29 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 		// Scale RSSI to something reasonable
 		let currentRSSI = (abs(RSSI.intValue) - 40) * (2)
 
-		// Map to Amaj scale
-		let currentNote = Note(rssi: currentRSSI)
+		// Kalman stuff
+		rssiMeasurements.append(RSSI.doubleValue)
+
+		for val in rssiMeasurements {
+			let prediction = filter.predict(stateTransitionModel: 1.0,
+											controlInputModel: 0,
+											controlVector: 0,
+											covarianceOfProcessNoise: 10)
+
+			let update = prediction.update(measurement: val, observationModel: 1, covarienceOfObservationNoise: 0.1)
+			self.filter = update
+		}
+
+
+
+//		let roundRSSI = Int(log(abs(filter.stateEstimatePrior)))
+		let roundRSSI = Int(abs(filter.stateEstimatePrior))
+
+		// Map adjusted value to Amaj scale
+		let currentNote = Note(rssi: roundRSSI)
+
+		os_log("%f", filter.stateEstimatePrior)
+		os_log("%i", roundRSSI)
 
 		// Throw up on screen
 		frequencyLabel.text = currentNote.rawValue.description
