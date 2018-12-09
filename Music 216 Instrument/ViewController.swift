@@ -11,19 +11,12 @@ import CoreMotion
 import CoreLocation
 import CoreBluetooth
 import AudioKit
-
+import os.log
 
 class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralManagerDelegate {
 
-	@IBOutlet var attitudeLabelX: UILabel!
-	@IBOutlet var attitudeLabelY: UILabel!
-	@IBOutlet var attitudeLabelZ: UILabel!
-
-	@IBOutlet var gyroscopeLabelX: UILabel!
-	@IBOutlet var gyroscopeLabelY: UILabel!
-	@IBOutlet var gyroscopeLabelZ: UILabel!
-
 	@IBOutlet weak var frequencyLabel: UILabel!
+	@IBOutlet weak var noteLabel: UILabel!
 
 	@IBAction func accOscSwitch(_ sender: UISwitch) {
 
@@ -39,17 +32,43 @@ class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralMana
 
 
 	let motionManager = CMMotionManager()
-	var currentPitch = 0.0
-	var currentRoll = 0.0
-	var currentYaw = 0.0
 
 	let locationManager = CLLocationManager()
 	var region: CLBeaconRegion? = nil
 
+	var bluetoothManager: CBCentralManager? = nil
+
 	let beaconOsc = AKOscillator()
 	let accOsc = AKOscillator()
 
-	var bluetoothManager: CBCentralManager? = nil
+	// Enum of note values for us (A Major)
+	// s = sharp, AA = octave up
+	// @TODO: Make dynamic for on-the-fly scale changing?
+	enum Note: Double {
+		case A  = 440.00
+		case B  = 493.88
+		case Cs = 554.37
+		case D  = 587.33
+		case E  = 659.25
+		case Fs = 739.99
+		case Gs = 830.61
+		case AA = 880.00
+
+		// Rounds input to corresponding scale value
+		init(rssi: Int) {
+			switch rssi {
+			case 00..<10: self = .A  // A
+			case 10..<20: self = .B // B
+			case 20..<30: self = .Cs // C#
+			case 30..<40: self = .D // D
+			case 40..<50: self = .E // E
+			case 50..<60: self = .Fs // F#
+			case 60..<70: self = .Gs // G#
+			case 70..<80: self = .AA // A
+			default: 	  self = .A
+			}
+		}
+	}
 
 	override func viewDidLoad() {
 
@@ -78,13 +97,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralMana
 		// Initialize CBPMDelegate
 //		bluetoothManager.delegate = self as? CBPeripheralManagerDelegate
 		bluetoothManager = CBCentralManager(delegate: self as CBCentralManagerDelegate, queue: DispatchQueue.main)
-
-
-
-
-
-
-
 
 
 		// --- SOUND ---
@@ -118,24 +130,33 @@ class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralMana
 
 	func centralManagerDidUpdateState(_ central: CBCentralManager) {
 		switch central.state {
-			case .poweredOn: self.startScanning()
+			case .poweredOn: bluetoothManager?.scanForPeripherals(withServices: nil, options: nil)
 			default: print("oh noes")
 		}
 	}
 
-	func startScanning() {
-		bluetoothManager?.scanForPeripherals(withServices: nil, options: nil)
-	}
-
-
 	func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-		print("DISCOVERED SOMETHING")
-		print("Name: \(peripheral.name)")
-		print("RSSI: \(RSSI)")
+		// Don't bother scanning if not ze macbook
+		guard peripheral.name == "Peter’s MacBook Pro" else {
+			return
+		}
+
+		os_log("MacBook RSSI: %@", RSSI)
+
+		// Scale RSSI to something reasonable
+		let currentRSSI = (abs(RSSI.intValue) - 40) * (2)
+
+		// Map to Amaj scale
+		let currentNote = Note(rssi: currentRSSI)
+
+		// Throw up on screen
+		frequencyLabel.text = currentNote.rawValue.description
+		noteLabel.text = String(describing: currentNote)
+
+		// And of course, set the frequency of our oscillator
+		beaconOsc.frequency = currentNote.rawValue
+
 	}
-
-
-
 
 	func monitorBeacons() {
 
@@ -179,15 +200,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralMana
 			// @TODO: Scale logarithmically for more granular detail?
 			print(nearestBeacon.rssi)
 			beaconOsc.frequency = abs(nearestBeacon.rssi) * 8
-			print("\tfrequency: \(beaconOsc.frequency)")
-
-			print("\tAccuracy: \(nearestBeacon.accuracy)")
+//			print("\tfrequency: \(beaconOsc.frequency)")
 
 			// -40 is base signal strength
 			// Using a scale factor of 2 to make the notes
 			// "closer together" in 3d space
 			let current = (abs(nearestBeacon.rssi) - 40) * (2)
-			print("CURRENT: \(current)")
+//			print("CURRENT: \(current)")
 
 			switch current {
 			case 0..<10: beaconOsc.frequency = 440.00  // A
@@ -254,32 +273,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralMana
 
 			motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main) { (data, error) in
 
+				guard let data = data else {
+					return
+				}
 
-				if let data = data {
-
-					// Assign data for AudioKit to use
-					self.currentPitch = data.attitude.pitch
-					self.currentRoll = data.attitude.roll
-					self.currentYaw = data.attitude.yaw
-
-					// Show on screen for Debug reasons
-					self.attitudeLabelX.text = "Pitch: " + self.currentPitch.description
-					self.attitudeLabelY.text = "Roll: " + self.currentRoll.description
-					self.attitudeLabelZ.text = "Yaw: " + self.currentYaw.description
-
-
-					let rollFreq = Double(abs(100 * self.currentRoll) + 300)
-					self.accOsc.amplitude = 0.5
-					self.accOsc.frequency = rollFreq
+				let rollFreq = Double(abs(100 * data.attitude.roll) + 300)
+				self.accOsc.amplitude = 0.5
+				self.accOsc.frequency = rollFreq
 //					print("cutoff freq: \(rollFreq)")
 //					let filter = AKLowPassFilter(self.beaconOsc, cutoffFrequency: rollFreq, resonance: 0.5)
 //					AudioKit.output = filter
 
 //					self.osc.amplitude = 0.5
 //					self.osc.frequency = abs(1000 * self.currentRoll)
-					//					print(self.osc.frequency)
-
-				}
 
 			}
 
@@ -287,7 +293,4 @@ class ViewController: UIViewController, CLLocationManagerDelegate, CBCentralMana
 
 	}
 
-
-
 }
-
