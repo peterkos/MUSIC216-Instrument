@@ -15,21 +15,32 @@ import os.log
 
 class ViewController: UIViewController, CBCentralManagerDelegate {
 
-	@IBOutlet weak var frequencyLabel: UILabel!
-	@IBOutlet weak var noteLabel: UILabel!
+	@IBOutlet weak var blueFrequencyLabel: UILabel!
+	@IBOutlet weak var blueNoteLabel: UILabel!
+	@IBOutlet weak var accFrequencyLabel: UILabel!
+	@IBOutlet weak var accNoteLabel: UILabel!
 
 	@IBAction func accOscSwitch(_ sender: UISwitch) {
 
 		if sender.isOn && !accOsc.isPlaying {
 			accOsc.start()
-			os_log("starting second...")
+			os_log("starting accOsc...")
 		} else {
 			accOsc.stop()
-			os_log("stopping second...")
+			os_log("stopping accOsc...")
 		}
 
 	}
 
+	@IBAction func blueOscSwitch(_ sender: UISwitch) {
+		if sender.isOn && !blueOsc.isPlaying {
+			blueOsc.start()
+			os_log("starting blueOsc...")
+		} else {
+			blueOsc.stop()
+			os_log("stopping blueOsc...")
+		}
+	}
 
 	// Managers
 	let motionManager = CMMotionManager()
@@ -156,8 +167,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 //		os_log("%i", roundRSSI)
 
 		// Throw up on screen
-		frequencyLabel.text = currentNote.rawValue.description
-		noteLabel.text = String(describing: currentNote)
+		blueFrequencyLabel.text = currentNote.rawValue.description
+		blueNoteLabel.text = String(describing: currentNote)
 
 		// And of course, set the frequency of our oscillator
 		blueOsc.frequency = currentNote.rawValue
