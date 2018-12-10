@@ -125,7 +125,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 			return
 		}
 
-		os_log("MacBook RSSI: %@", RSSI)
+//		os_log("MacBook RSSI: %@", RSSI)
 
 		// Scale RSSI to something reasonable
 		let currentRSSI = (abs(RSSI.intValue) - 40) * (2)
@@ -143,16 +143,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 			self.filter = update
 		}
 
+//		print(advertisementData.keys)
 
 
 //		let roundRSSI = Int(log(abs(filter.stateEstimatePrior)))
-		let roundRSSI = Int(abs(filter.stateEstimatePrior))
+		let roundRSSI = Int(abs(filter.stateEstimatePrior + 45))
 
 		// Map adjusted value to Amaj scale
 		let currentNote = Note(rssi: roundRSSI)
 
-		os_log("%f", filter.stateEstimatePrior)
-		os_log("%i", roundRSSI)
+//		os_log("%f", filter.stateEstimatePrior)
+//		os_log("%i", roundRSSI)
 
 		// Throw up on screen
 		frequencyLabel.text = currentNote.rawValue.description
@@ -171,21 +172,43 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 			motionManager.showsDeviceMovementDisplay = true
 			motionManager.deviceMotionUpdateInterval = 1.0 / 60.0
 
+			var pitchIndex = 0
+			var pitches: [Note] = [.A, .B, .Cs, .D, .E, .Fs, .Gs, .AA]
+
 			motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main) { (data, error) in
 
 				guard let data = data else {
 					return
 				}
 
-				let rollFreq = Double(abs(100 * data.attitude.roll) + 300)
-				self.accOsc.amplitude = 0.5
-				self.accOsc.frequency = rollFreq
-//					print("cutoff freq: \(rollFreq)")
-//					let filter = AKLowPassFilter(self.beaconOsc, cutoffFrequency: rollFreq, resonance: 0.5)
-//					AudioKit.output = filter
+//				let rollFreq = Double(abs(100 * data.attitude.roll) + 300)
+//				self.accOsc.amplitude = 0.5
+//				self.accOsc.frequency = rollFreq
 
-//					self.osc.amplitude = 0.5
-//					self.osc.frequency = abs(1000 * self.currentRoll)
+
+//				let linearAcc = sqrt(pow(data.userAcceleration.x, 2) + pow(data.userAcceleration.y, 2) + pow(data.userAcceleration.z, 2))
+				let linearAcc = data.userAcceleration.y
+				os_log("%f", linearAcc)
+
+				if linearAcc >= 1.0 {
+					if (pitchIndex == pitches.count - 1) {
+						pitchIndex = 0
+					} else {
+						pitchIndex += 1
+					}
+				} else {
+					if (pitchIndex != 0) {
+						pitchIndex -= 1
+					}
+				}
+
+				self.accOsc.amplitude = 0.5
+				self.accOsc.frequency = pitches[pitchIndex].rawValue
+
+
+
+
+
 
 			}
 
