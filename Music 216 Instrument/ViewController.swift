@@ -175,6 +175,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 			var pitchIndex = 0
 			var pitches: [Note] = [.A, .B, .Cs, .D, .E, .Fs, .Gs, .AA]
 
+			var accData = [Double]()
+
 			motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: OperationQueue.main) { (data, error) in
 
 				guard let data = data else {
@@ -187,25 +189,47 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 
 
 //				let linearAcc = sqrt(pow(data.userAcceleration.x, 2) + pow(data.userAcceleration.y, 2) + pow(data.userAcceleration.z, 2))
-				let linearAcc = data.userAcceleration.y
-				os_log("%f", linearAcc)
+				let linearAcc = data.userAcceleration.x
 
-				if linearAcc >= 1.0 {
-					if (pitchIndex == pitches.count - 1) {
-						pitchIndex = 0
-					} else {
-						pitchIndex += 1
+				// Dump cache
+				if (accData.count >= (60 / 2)) {
+
+
+					if accData.max()! >= 1.5 {
+						if (pitchIndex == pitches.count - 1) {
+							pitchIndex = 0
+						} else {
+							pitchIndex += 1
+						}
+
+						os_log("max: %f", accData.max()!)
+
+					} else if (accData.min()! <= -1.5){
+						if (pitchIndex != 0) {
+							pitchIndex -= 1
+						}
+
+						os_log("min: %f", accData.min()!)
+
 					}
-				} else {
-					if (pitchIndex != 0) {
-						pitchIndex -= 1
-					}
+
+					os_log("alt min: %f", accData.min()!)
+
+
+
+					accData.removeAll()
+					return
 				}
+
+				accData.append(linearAcc)
 
 				self.accOsc.amplitude = 0.5
 				self.accOsc.frequency = pitches[pitchIndex].rawValue
 
-
+				DispatchQueue.main.async {
+					self.accFrequencyLabel.text = String(self.accOsc.frequency)
+					self.accNoteLabel.text = String(describing: pitches[pitchIndex])
+				}
 
 
 
