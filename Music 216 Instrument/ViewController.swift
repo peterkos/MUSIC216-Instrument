@@ -11,6 +11,7 @@ import CoreMotion
 import CoreBluetooth
 import AudioKit
 import KalmanFilter
+import SwiftOSC
 import os.log
 
 class ViewController: UIViewController, CBCentralManagerDelegate {
@@ -119,6 +120,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 		// Start your engines
 		blueOsc.start()
 		accOsc.start()
+
+
+		// --- SwiftOSC ---
+
+		let client = OSCClient(address: "localhost", port: 57120)
+
+		let message = OSCMessage(OSCAddressPattern("/music"), "Hello World")
+
+		for _ in 0..<10 {
+			client.send(message)
+		}
+
+		do {
+			if #available(iOS 10.0, *) {
+				try AKSettings.setSession(category: .playback, with: [.defaultToSpeaker, .allowAirPlay])
+			}
+		} catch {
+			print("Unable to set AudioKit playback settings")
+		}
 
 
 	}
