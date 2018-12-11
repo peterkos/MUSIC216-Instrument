@@ -50,10 +50,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 	// Oscillators
 	let blueOsc = AKOscillator()
 	let accOsc = AKOscillator()
+//	var mixer = AKMixer()
+	var reverb = AKReverb()
 
 	// Kalman filter stuff for relatively-consistent RSSI values
 	var rssiMeasurements = [Double]()
 	var filter = KalmanFilter<Double>(stateEstimatePrior: 0.0, errorCovariancePrior: 10.0)
+
+
+	// SwiftOSC garbage
+	let client = OSCClient(address: "10.19.207.86", port: 8080)
+//	let message = OSCMessage(OSCAddressPattern("/"), "Hello World")
 
 	// Enum of note values for us (A Major)
 	// s = sharp, AA = octave up
@@ -97,8 +104,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 
 		// --- SOUND ---
 
-		let mixer = AKMixer(blueOsc, accOsc)
-		AudioKit.output = mixer
+//		mixer = AKMixer(blueOsc, accOsc)
+//		AudioKit.output = mixer
+		AudioKit.output = accOsc
 
 		// Configure default amp and freq
 		// (These are set later in didRangeBeacons())
@@ -110,6 +118,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 		accOsc.amplitude = 0.5
 		accOsc.frequency = 220
 
+		// Reverb
+		reverb = AKReverb(accOsc, dryWetMix: 1.0)
+		reverb.loadFactoryPreset(.cathedral)
+
+		let envelope = AKAmplitudeEnvelope(reverb, attackDuration: 0.01, decayDuration: 0.1, sustainLevel: 1.0, releaseDuration: 0.5)
+		AudioKit.output = envelope
+
+		accOsc.rampDuration = 0.10
+
+
+
 		// Output sound
 		do {
 			try AudioKit.start()
@@ -120,17 +139,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 		// Start your engines
 		blueOsc.start()
 		accOsc.start()
-
-
-		// --- SwiftOSC ---
-
-		let client = OSCClient(address: "localhost", port: 57120)
-
-		let message = OSCMessage(OSCAddressPattern("/music"), "Hello World")
-
-		for _ in 0..<10 {
-			client.send(message)
-		}
 
 		do {
 			if #available(iOS 10.0, *) {
@@ -152,6 +160,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 
 	func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
 		// Don't bother scanning if not ze macbook
+
+		os_log("%@", peripheral.name ?? "nil")
 		guard peripheral.name == "Peter’s MacBook Pro" else {
 			return
 		}
@@ -159,7 +169,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 //		os_log("MacBook RSSI: %@", RSSI)
 
 		// Scale RSSI to something reasonable
-		let currentRSSI = (abs(RSSI.intValue) - 40) * (2)
+//		let currentRSSI = (abs(RSSI.intValue) - 40) * (2)
 
 		// Kalman stuff
 		rssiMeasurements.append(RSSI.doubleValue)
@@ -179,6 +189,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 
 //		let roundRSSI = Int(log(abs(filter.stateEstimatePrior)))
 		let roundRSSI = Int(abs(filter.stateEstimatePrior + 45))
+
+
+		let address = OSCAddressPattern("/")
+		self.client.send(OSCMessage(address, roundRSSI, "rssi"))
+		os_log("%i", roundRSSI)
+
+
+//		let bitCrush = AKBitCrusher(accOsc, bitDepth: 16, sampleRate: 40000)
+
 
 		// Map adjusted value to Amaj scale
 		let currentNote = Note(rssi: roundRSSI)
@@ -241,12 +260,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 						}
 
 						os_log("min: %f", accData.min()!)
-
 					}
-
-					os_log("alt min: %f", accData.min()!)
-
-
 
 					accData.removeAll()
 					return
@@ -256,6 +270,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate {
 
 				self.accOsc.amplitude = 0.5
 				self.accOsc.frequency = pitches[pitchIndex].rawValue
+
+				let address = OSCAddressPattern("/")
+				self.client.send(OSCMessage(address, pitches[pitchIndex].rawValue))
 
 				DispatchQueue.main.async {
 					self.accFrequencyLabel.text = String(self.accOsc.frequency)
