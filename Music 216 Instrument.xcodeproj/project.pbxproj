@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		4B8170BE0D56DC03E128B20B /* Pods_Music_216_Instrument.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4180BF34797E27FF47CAB5F /* Pods_Music_216_Instrument.framework */; };
+		D75B181621BDB1D500AA761E /* KalmanFilter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D75B181521BDB1D500AA761E /* KalmanFilter.framework */; };
+		D75B181721BDB50500AA761E /* KalmanFilter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D75B181521BDB1D500AA761E /* KalmanFilter.framework */; };
+		D75B181821BDB50500AA761E /* KalmanFilter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D75B181521BDB1D500AA761E /* KalmanFilter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D7F809D021825C850041DBC3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F809CF21825C850041DBC3 /* AppDelegate.swift */; };
 		D7F809D221825C850041DBC3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F809D121825C850041DBC3 /* ViewController.swift */; };
 		D7F809D521825C850041DBC3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D7F809D321825C850041DBC3 /* Main.storyboard */; };
@@ -15,10 +18,25 @@
 		D7F809DA21825C870041DBC3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D7F809D821825C870041DBC3 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		D75B181921BDB50500AA761E /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D75B181821BDB50500AA761E /* KalmanFilter.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		069139EE2ABF05A603B6F5F1 /* Pods-Music 216 Instrument.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Music 216 Instrument.release.xcconfig"; path = "Pods/Target Support Files/Pods-Music 216 Instrument/Pods-Music 216 Instrument.release.xcconfig"; sourceTree = "<group>"; };
 		C2B010DE85B7A9675318CC52 /* Pods-Music 216 Instrument.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Music 216 Instrument.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Music 216 Instrument/Pods-Music 216 Instrument.debug.xcconfig"; sourceTree = "<group>"; };
 		D4180BF34797E27FF47CAB5F /* Pods_Music_216_Instrument.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Music_216_Instrument.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D75B181521BDB1D500AA761E /* KalmanFilter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = KalmanFilter.framework; sourceTree = "<group>"; };
 		D7F809CC21825C850041DBC3 /* Music 216 Instrument.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Music 216 Instrument.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7F809CF21825C850041DBC3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D7F809D121825C850041DBC3 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -34,6 +52,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D75B181621BDB1D500AA761E /* KalmanFilter.framework in Frameworks */,
+				D75B181721BDB50500AA761E /* KalmanFilter.framework in Frameworks */,
 				4B8170BE0D56DC03E128B20B /* Pods_Music_216_Instrument.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -53,6 +73,7 @@
 		91A64ABD6E5E23FC2D9151DD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D75B181521BDB1D500AA761E /* KalmanFilter.framework */,
 				D4180BF34797E27FF47CAB5F /* Pods_Music_216_Instrument.framework */,
 			);
 			name = Frameworks;
@@ -101,6 +122,8 @@
 				D7F809C821825C850041DBC3 /* Sources */,
 				D7F809C921825C850041DBC3 /* Frameworks */,
 				D7F809CA21825C850041DBC3 /* Resources */,
+				E29DCE3B0E33A08BC00846EE /* [CP] Embed Pods Frameworks */,
+				D75B181921BDB50500AA761E /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -128,7 +151,7 @@
 								enabled = 0;
 							};
 							com.apple.BackgroundModes = {
-								enabled = 0;
+								enabled = 1;
 							};
 						};
 					};
@@ -186,6 +209,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E29DCE3B0E33A08BC00846EE /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-Music 216 Instrument/Pods-Music 216 Instrument-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/SwiftOSC/SwiftOSC.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftOSC.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Music 216 Instrument/Pods-Music 216 Instrument-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -345,6 +390,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CAUV8X6AAP;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = "Music 216 Instrument/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -364,6 +413,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CAUV8X6AAP;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = "Music 216 Instrument/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

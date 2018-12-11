@@ -8,5 +8,6 @@ target 'Music 216 Instrument' do
   # Pods for Music 216 Instrument
 
 	pod 'AudioKit', '~> 4.0'
+	pod 'SwiftOSC', '~> 1.2'
 
 end

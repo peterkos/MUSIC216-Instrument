@@ -1,0 +1,11 @@
+framework module KalmanFilter {
+  umbrella header "KalmanFilter.h"
+
+  export *
+  module * { export * }
+}
+
+module KalmanFilter.Swift {
+    header "KalmanFilter-Swift.h"
+    requires objc
+}
